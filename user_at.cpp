@@ -11,7 +11,7 @@ extern TimerEvent_t valveTimer;
  */
 static int at_query_packet()
 {
-	snprintf(g_at_query_buf, ATQUERY_SIZE, "Packet: %02X%02X%02X%02X%C",
+	snprintf(g_at_query_buf, ATQUERY_SIZE, "Packet: %02X%02X%02X%02X%02X",
 			 g_lpwan_data.batt_1,
 			 g_lpwan_data.batt_2,
 			 g_lpwan_data.valve_inteval_1,
