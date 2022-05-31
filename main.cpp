@@ -116,11 +116,6 @@ void setup_app(void)
 	mcp.pinMode(VPIN_OPEN, OUTPUT);
 	mcp.pinMode(VPIN_CLOSED, OUTPUT);
 
-#ifdef BOOST_SUPPORT
-    pinMode(VPIN_BOOST, OUTPUT);
-    digitalWrite(VPIN_BOOST, LOW); //12V output
-#endif
-
 	MYLOG("APP", "Initializing LoRaWAN settings");
 	// Setup LoRaWAN credentials hard coded
 	// It is strongly recommended to avoid duplicated node credentials
@@ -141,32 +136,32 @@ void setup_app(void)
 	memcpy(g_lorawan_settings.node_nws_key, node_nws_key, 16);		// ABP Network Session Key MSB
 	memcpy(g_lorawan_settings.node_apps_key, node_apps_key, 16);	// ABP Application Session key MSB
 	g_lorawan_settings.node_dev_addr = 0x26021FB4;					// ABP Device Address MSB
-	g_lorawan_settings.send_repeat_time = 300000;				  // Send repeat time in milliseconds: 5 * 60 * 1000 => 5 minutes
-	g_lorawan_settings.adr_enabled = false;						  // Flag for ADR on or off
-	g_lorawan_settings.public_network = true;					  // Flag for public or private network
-	g_lorawan_settings.duty_cycle_enabled = false;				  // Flag to enable duty cycle (validity depends on Region)
-	g_lorawan_settings.join_trials = 10; 				    	  // Number of join retries
-	g_lorawan_settings.tx_power = TX_POWER_0;					  // TX power 0 .. 15 (validity depends on Region)
-	g_lorawan_settings.data_rate = DR_3;						  // Data rate 0 .. 15 (validity depends on Region)
-	g_lorawan_settings.lora_class = CLASS_A;	    			  // LoRaWAN class 0: A, 2: C, 1: B is not supported
-	g_lorawan_settings.subband_channels = 2;					  // Subband channel selection 1 .. 9
-	g_lorawan_settings.app_port = LORAWAN_APP_PORT;				  // Data port to send data
-	g_lorawan_settings.confirmed_msg_enabled = LMH_CONFIRMED_MSG; // Flag to enable confirmed messages
-	g_lorawan_settings.resetRequest = true;						  // Command from BLE to reset device
-	g_lorawan_settings.lora_region = LORAMAC_REGION_US915;		  // LoRa region
+	g_lorawan_settings.send_repeat_time = 300000;					// Send repeat time in milliseconds: 5 * 60 * 1000 => 5 minutes
+	g_lorawan_settings.adr_enabled = false;							// Flag for ADR on or off
+	g_lorawan_settings.public_network = true;						// Flag for public or private network
+	g_lorawan_settings.duty_cycle_enabled = false;					// Flag to enable duty cycle (validity depends on Region)
+	g_lorawan_settings.join_trials = 10;							// Number of join retries
+	g_lorawan_settings.tx_power = TX_POWER_0;						// TX power 0 .. 15 (validity depends on Region)
+	g_lorawan_settings.data_rate = DR_3;							// Data rate 0 .. 15 (validity depends on Region)
+	g_lorawan_settings.lora_class = CLASS_A;						// LoRaWAN class 0: A, 2: C, 1: B is not supported
+	g_lorawan_settings.subband_channels = 2;						// Subband channel selection 1 .. 9
+	g_lorawan_settings.app_port = LORAWAN_APP_PORT;					// Data port to send data
+	g_lorawan_settings.confirmed_msg_enabled = LMH_CONFIRMED_MSG;	// Flag to enable confirmed messages
+	g_lorawan_settings.resetRequest = true;							// Command from BLE to reset device
+	g_lorawan_settings.lora_region = LORAMAC_REGION_US915;			// LoRa region
 
 	// Save LoRaWAN settings
 	api_set_credentials();
-	
-	//Create a user timer to periodically check valve interval
+
+	// Create a user timer to periodically check valve interval
 	MYLOG("APP", "Initializing valve timer");
 	app_timers_init();
 
-	//Initialize valve settings
+	// Initialize valve settings
 	MYLOG("APP", "Initializing valve settings");
 	g_valve_settings.valve_interval_started = false;
 	g_valve_settings.oper_time_sec = DEFAULT_VALVE_OPER_TIME_SEC;
-	g_valve_settings.state = VALVE_STATE_CLOSED;	
+	g_valve_settings.state = VALVE_STATE_CLOSED;
 }
 
 /**
@@ -177,20 +172,20 @@ void setup_app(void)
 */
 bool init_app(void)
 {
-	//MYLOG("APP", "init_app");
+	// MYLOG("APP", "init_app");
 #if 0
 	Serial.println("================================================");
 	Serial.println("WisBlock Valve Controller");
 	Serial.println("================================================");
 	api_log_settings();
-	Serial.println("================================================");	
+	Serial.println("================================================");
 #endif
-	//Ensure our valve is closed at initialization
+	// Ensure our valve is closed at initialization
 	MYLOG("APP", "Setting default state: Closing valve");
 	setValve(VALVE_STATE_CLOSED, g_valve_settings.oper_time_sec);
 
 #ifdef BLE_ADVERTISE_FOREVER
-	//Start bluetooth to run forever
+	// Start bluetooth to run forever
 	restart_advertising(0);
 #endif
 
@@ -226,12 +221,12 @@ void app_event_handler(void)
 		if (!low_batt_protection)
 		{
 			// Read the current remaining valve interval and state
-			if(g_valve_settings.valve_interval_started)
+			if (g_valve_settings.valve_interval_started)
 			{
 				int curMillis = millis();
 				int diff = curMillis - g_valve_settings.valve_interval_begin_millis;
 				int remain = g_valve_settings.valve_interval_millis - diff;
-				valve_state.valve_ts16 = (uint16_t)(remain/1000);
+				valve_state.valve_ts16 = (uint16_t)(remain / 1000);
 			}
 			else
 			{
@@ -270,7 +265,7 @@ void app_event_handler(void)
 				low_batt_protection = false;
 				api_timer_restart(g_lorawan_settings.send_repeat_time);
 				MYLOG("APP", "Battery protection deactivated");
-			}	
+			}
 
 			lmh_error_status result = send_lora_packet((uint8_t *)&g_lpwan_data, LPWAN_DATA_LEN);
 			switch (result)
@@ -384,7 +379,7 @@ void lora_data_handler(void)
 		{
 			MYLOG("APP", "Join network failed");
 			/// \todo here join could be restarted.
-			//lmh_join();
+			// lmh_join();
 		}
 	}
 }

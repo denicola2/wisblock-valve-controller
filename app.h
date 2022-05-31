@@ -5,7 +5,7 @@
 /** Add you required includes after Arduino.h */
 
 #include <Wire.h>
-#include <Adafruit_MCP23X17.h>  //click here to get the library: http://librarymanager/All#Adafruit_MCP23017
+#include <Adafruit_MCP23X17.h> //click here to get the library: http://librarymanager/All#Adafruit_MCP23017
 
 /** Include the WisBlock-API */
 #include <WisBlock-API.h>
@@ -21,22 +21,23 @@
 #endif
 
 /** GPIO pins for valve control */
-#define VPIN_OPEN   6
+#define VPIN_OPEN 6
 #define VPIN_CLOSED 7
 #define VALVE_STATE_CLOSED 0
 #define VALVE_STATE_OPENED 1
 
-/** How long to hold the relay input signal HIGH to allow for valve 
+/** How long to hold the relay input signal HIGH to allow for valve
  * to fully transition between open/closed. May be tweaked per valve. */
 #define DEFAULT_VALVE_OPER_TIME_SEC 6
 
 /** User defined structure for storing valve state */
-struct s_valve_settings {
-  uint8_t state;	               // Current valve state
-  uint8_t oper_time_sec;           // How long it takes to open/close the valve
-  bool valve_interval_started;     // Is the valve interval running?
-  int valve_interval_begin_millis; // When did the valve interval begin? (timestamp)
-  int valve_interval_millis;	   // How long the current valve interval is
+struct s_valve_settings
+{
+	uint8_t state;					 // Current valve state
+	uint8_t oper_time_sec;			 // How long it takes to open/close the valve
+	bool valve_interval_started;	 // Is the valve interval running?
+	int valve_interval_begin_millis; // When did the valve interval begin? (timestamp)
+	int valve_interval_millis;		 // How long the current valve interval is
 };
 
 #ifdef NRF52_SERIES
@@ -87,7 +88,7 @@ struct lpwan_data_s
 	uint8_t batt_2 = 0;
 	uint8_t valve_inteval_1 = 0;
 	uint8_t valve_inteval_2 = 0;
-	bool    valve_opened = false;
+	bool valve_opened = false;
 };
 extern lpwan_data_s g_lpwan_data;
 #define LPWAN_DATA_LEN sizeof(lpwan_data_s)

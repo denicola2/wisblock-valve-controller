@@ -1,19 +1,12 @@
 #include "app.h"
 
-/*********************************************************************/
-// Example AT command to change the value of the variable new_val:
-// Query the value AT+SETVAL=?
-// Set the value AT+SETVAL=120000
-// Second AT command to show last packet content
-// Query with AT+LIST=?
-/*********************************************************************/
 extern Adafruit_MCP23X17 mcp;
 extern s_valve_settings g_valve_settings;
 extern TimerEvent_t valveTimer;
 
 /**
  * @brief Example how to show the last LoRa packet content
- * 
+ *
  * @return int always 0
  */
 static int at_query_packet()
@@ -29,7 +22,7 @@ static int at_query_packet()
 
 /**
  * @brief Returns the current value of the valve controller
- * 
+ *
  * @return int always 0
  */
 static int at_query_valve()
@@ -40,22 +33,22 @@ static int at_query_valve()
 
 void setValve(int state, int sec)
 {
-	if(!sec)
+	if (!sec)
 		sec = DEFAULT_VALVE_OPER_TIME_SEC;
 
-	//Only modify valve state in here!
-	if(state)
-	{		
+	// Only modify valve state in here!
+	if (state)
+	{
 		mcp.digitalWrite(VPIN_OPEN, HIGH);
-		delay(sec*1000);
+		delay(sec * 1000);
 		mcp.digitalWrite(VPIN_OPEN, LOW);
 		g_valve_settings.state = VALVE_STATE_OPENED;
 		MYLOG("APP", "Valve opened");
 	}
 	else
-	{		
+	{
 		mcp.digitalWrite(VPIN_CLOSED, HIGH);
-		delay(sec*1000);
+		delay(sec * 1000);
 		mcp.digitalWrite(VPIN_CLOSED, LOW);
 		g_valve_settings.state = VALVE_STATE_CLOSED;
 		MYLOG("APP", "Valve closed");
@@ -64,9 +57,9 @@ void setValve(int state, int sec)
 
 void beginValveInterval(int sec)
 {
-	//Open the valve for sec seconds starting now
+	// Open the valve for sec seconds starting now
 	setValve(VALVE_STATE_OPENED, g_valve_settings.oper_time_sec);
-	g_valve_settings.valve_interval_millis = sec*1000;
+	g_valve_settings.valve_interval_millis = sec * 1000;
 	g_valve_settings.valve_interval_begin_millis = millis();
 	g_valve_settings.valve_interval_started = true;
 	TimerSetValue(&valveTimer, g_valve_settings.valve_interval_millis);
@@ -76,18 +69,18 @@ void beginValveInterval(int sec)
 
 /**
  * @brief Command to begin the valve OPEN interval
- * 
+ *
  * @param str the new value for the variable without the AT part
  * @return int 0 if the command was succesfull, 5 if the parameter was wrong
  */
 static int at_query_valve_interval()
 {
-	if(g_valve_settings.valve_interval_started)
+	if (g_valve_settings.valve_interval_started)
 	{
 		int curMillis = millis();
 		int diff = curMillis - g_valve_settings.valve_interval_begin_millis;
 		int remain = g_valve_settings.valve_interval_millis - diff;
-		snprintf(g_at_query_buf, ATQUERY_SIZE, "Sec remaining: %d", remain/1000);
+		snprintf(g_at_query_buf, ATQUERY_SIZE, "Sec remaining: %d", remain / 1000);
 	}
 	else
 	{
@@ -98,14 +91,14 @@ static int at_query_valve_interval()
 
 /**
  * @brief Command to begin the valve OPEN interval, provided seconds
- * 
+ *
  * @param str the new value for the variable without the AT part
  * @return int 0 if the command was succesfull, 5 if the parameter was wrong
  */
 static int at_exec_valve_interval(char *str)
 {
 	int sec = strtol(str, NULL, 0);
-	if(g_valve_settings.valve_interval_started)
+	if (g_valve_settings.valve_interval_started)
 	{
 		MYLOG("APP", "Valve interval already running");
 		return 5;
@@ -120,7 +113,7 @@ static int at_exec_valve_interval(char *str)
 /**
  * @brief Command to set the valve operational interval
  * i.e. How long the signal is held high to close/open the valve
- * 
+ *
  * @param str the new value for the variable without the AT part
  * @return int 0 if the command was succesfull, 5 if the parameter was wrong
  */
@@ -134,7 +127,7 @@ static int at_exec_valve_oper_time(char *str)
 
 /**
  * @brief Returns the current value of the valve operational interval
- * 
+ *
  * @return int always 0
  */
 static int at_query_valve_oper_time()
@@ -145,7 +138,7 @@ static int at_query_valve_oper_time()
 
 /**
  * @brief Command to set the valve control
- * 
+ *
  * @param str the new value for the variable without the AT part
  * @return int 0 if the command was succesfull, 5 if the parameter was wrong
  */
@@ -154,15 +147,15 @@ static int at_exec_valve(char *str)
 	int valve_time = g_valve_settings.oper_time_sec;
 	int valve_state;
 
-	if(g_valve_settings.valve_interval_started)
+	if (g_valve_settings.valve_interval_started)
 	{
 		MYLOG("APP", "Valve interval is already started, overriding it with manual control");
 		g_valve_settings.valve_interval_started = false;
 	}
 
-	if(strstr(str,":"))
+	if (strstr(str, ":"))
 	{
-		if(sscanf(str, "%d:%d", &valve_state, &valve_time) == 2)
+		if (sscanf(str, "%d:%d", &valve_state, &valve_time) == 2)
 		{
 			MYLOG("APP", "Valve State %d for %d sec", valve_state, valve_time);
 		}
@@ -177,15 +170,15 @@ static int at_exec_valve(char *str)
 		valve_state = strtol(str, NULL, 0);
 		MYLOG("APP", "Valve State %d", valve_state);
 	}
-    
-	if(valve_state)
+
+	if (valve_state)
 	{
-		//Open the valve
+		// Open the valve
 		setValve(VALVE_STATE_OPENED, valve_time);
 	}
 	else
 	{
-		//Close the valve
+		// Close the valve
 		setValve(VALVE_STATE_CLOSED, valve_time);
 	}
 
@@ -193,15 +186,15 @@ static int at_exec_valve(char *str)
 }
 
 /**
- * @brief Command to set the 12V boost pin
- * 
+ * @brief Command to Reboot the device
+ *
  * @param str must be 1 to begin reboot
  * @return int 0 if the command was succesfull, 5 if the parameter was wrong
  */
 static int at_exec_reboot(char *str)
 {
 	int confirm = strtol(str, NULL, 0);
-	if(confirm)
+	if (confirm)
 	{
 		MYLOG("APP", "Rebooting...");
 		delay(1000);
@@ -217,6 +210,16 @@ static int at_exec_reboot(char *str)
 
 /**
  * @brief List of all available commands with short help and pointer to functions
+ *
+ *  Example AT commands:
+ *  AT+LIST=?   - List the last lorwan packet content
+ *  AT+REBOOT=1 - Reboot the WisBlock
+ *  AT+VLVS=1   - Set valve state to open
+ *  AT+VLVS=?   - Get current valve state
+ *  AT+VLVO=10  - Set the valve operational time to 10 sec (how long it takes the valve to fully open/close)
+ *  AT+VLVO=?   - Get the current valve operational time
+ *  AT+VLVI=600 - Open the valve for 10 minutes (60 sec & 10), the valve will automatically close after expiry
+ *  AT+VLVI=?   - Get how many seconds remain before the valve closes
  * 
  */
 atcmd_t g_user_at_cmd_list_example[] = {
