@@ -52,6 +52,7 @@ g_lorawan_settings.app_port = LORAWAN_APP_PORT;  // Data port to send data
 g_lorawan_settings.lora_region = LORAMAC_REGION_US915;  // LoRa region
 g_lorawan_settings.tx_power = TX_POWER_0;  // TX power 0 .. 15 (validity depends on Region)
 g_lorawan_settings.data_rate = DR_3;  // Data rate 0 .. 15 (validity depends on Region)
+g_lorawan_settings.subband_channels = 2; // Subband channel selection 1 .. 9
 ```
 - Use PlatformIO or Arduino IDE to upload to the target
 
