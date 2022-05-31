@@ -1,7 +1,7 @@
-## WisBlock Valve Controller
+# WisBlock Valve Controller
 Ball Valve controller based on the WisBlock and RAK4631, using the [WisBlock-API library](https://github.com/beegee-tokyo/WisBlock-API)
 
-# Hardware Used
+## Hardware Used
 Here is the list of hardware used, substitutions can be made based on use-case
 - [WisBlock Base RAK5005-O](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK5005-O/Datasheet/)
 - [WisBlock Core RAK4631](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK4631/Datasheet/)
@@ -11,10 +11,10 @@ Here is the list of hardware used, substitutions can be made based on use-case
 - [3/4" Motorized Ball Valve from US Solid](https://www.amazon.com/dp/B06XRJF4JG) / [Datasheet](https://m.media-amazon.com/images/I/81iA78dQJbL.pdf)
 - Batteries: 3.7V 2000mAh Lipo Battery, 9V Battery
 
-# Connections Diagram
+## Connections Diagram
 ![Valve Controller](https://user-images.githubusercontent.com/8965585/171214857-dc32ca38-134b-44fb-b66c-85cc1378d578.jpg)
 
-# Setup
+## Setup
 - WisBlock Base, Core, and IO Expansion Module per the instructions in the [RAK WisBlock Quickstart Guide](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK4631/Quickstart/)
 - If you are using Visual Studio, the following `platformio.ini` can be used to take care of the library requirements:
 ```
@@ -39,7 +39,7 @@ lib_deps =
 ; build_flags = -DAPI_DEBUG=1 -DMY_DEBUG=1
 ```
 
-# Build and Upload
+## Build and Upload
 - Before building the code, be sure to modify the LoRaWAN keys in `main.cpp` to be unique to your device
 ```
 uint8_t node_device_eui[8] = {0x00, 0x0D, 0x75, 0xE6, 0x56, 0x4D, 0xC1, 0xF3};
@@ -56,7 +56,7 @@ g_lorawan_settings.subband_channels = 2; // Subband channel selection 1 .. 9
 ```
 - Use PlatformIO or Arduino IDE to upload to the target
 
-# Verify Functionality
+## Verify Functionality
 - LoRaWAN CLASS A should auto-join the network provided there is a gateway in range. Check to see if your device has joined the network. 
 - Use the [Bluefruit Connect](https://apps.apple.com/us/app/bluefruit-connect/id830125974) app to scan for your device (RAK-VLVC-XXXX) and attempt to connect. By default, the code is set to advertise BLE indefinitely.
 - Interact over UART from the app, or via LoRaWAN downlink to the device to do the following:
@@ -68,13 +68,13 @@ g_lorawan_settings.subband_channels = 2; // Subband channel selection 1 .. 9
   6. Check the current state of the valve: `AT+VLVS=?`
   7. View more info about WisBlock AT commands [here](https://github.com/beegee-tokyo/WisBlock-API/blob/main/AT-Commands.md)
 
-# Sample screenshots from BLE UART Interactions
+## Sample screenshots from BLE UART Interactions
 <img src="https://user-images.githubusercontent.com/8965585/171219798-5b4922c7-e3e6-4572-bb4c-408c106a84ad.png" height=1024 width=512>
 
-# Project Photo
+## Project Photo
 ![image](https://user-images.githubusercontent.com/8965585/171220811-22b14be2-dafe-4aa6-9f13-93ed6002d2fa.png)
 
-# Future Improvements
+## Future Improvements
 - Add circuitry or a new RAK module to measure and track the capacity of the 9V battery used to drive the valve motor.
 - Add RAK12002 RTC module to allow for the controller to keep a programmable open/close schedule.
 
