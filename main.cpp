@@ -1,4 +1,5 @@
 #include "app.h"
+#include "credentials.h"
 
 /** Define the version of your SW */
 #define SW_VERSION_1 1 // major version increase on API change / not backwards compatible
@@ -28,19 +29,6 @@ Adafruit_MCP23X17 mcp;
 
 /** Global settings for valve state */
 s_valve_settings g_valve_settings;
-
-/**
- * Optional hard-coded LoRaWAN credentials for OTAA and ABP.
- * It is strongly recommended to avoid duplicated node credentials
- * Options to setup credentials are
- * - over USB with AT commands
- * - over BLE with My nRF52 Toolbox
- */
-uint8_t node_device_eui[8] = {0x00, 0x0D, 0x75, 0xE6, 0x56, 0x4D, 0xC1, 0xF3};
-uint8_t node_app_eui[8] = {0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x02, 0x01, 0xE1};
-uint8_t node_app_key[16] = {0x2B, 0x84, 0xE0, 0xB0, 0x9B, 0x68, 0xE5, 0xCB, 0x42, 0x17, 0x6F, 0xE7, 0x53, 0xDC, 0xEE, 0x79};
-uint8_t node_nws_key[16] = {0x32, 0x3D, 0x15, 0x5A, 0x00, 0x0D, 0xF3, 0x35, 0x30, 0x7A, 0x16, 0xDA, 0x0C, 0x9D, 0xF5, 0x3F};
-uint8_t node_apps_key[16] = {0x3F, 0x6A, 0x66, 0x45, 0x9D, 0x5E, 0xDC, 0xA6, 0x3C, 0xBC, 0x46, 0x19, 0xCD, 0x61, 0xA1, 0x1E};
 
 /** Flag showing if TX cycle is ongoing */
 bool lora_busy = false;
@@ -125,6 +113,13 @@ void setup_app(void)
 
 	// Read LoRaWAN settings from flash
 	api_read_credentials();
+
+	// Modify credentials to be unique in credentials.h
+	uint8_t node_device_eui[8] = NODE_DEVICE_EUI;
+	uint8_t node_app_eui[8] = NODE_APP_EUI;
+	uint8_t node_app_key[16] = NODE_APP_KEY;
+	uint8_t node_nws_key[16] = NODE_NWS_KEY;
+	uint8_t node_apps_key[16] = NODE_APPS_KEY;
 
 	// Change LoRaWAN settings
 	g_lorawan_settings.lorawan_enable = true;
@@ -319,8 +314,6 @@ void ble_data_handler(void)
 */
 void lora_data_handler(void)
 {
-	// AD_DEBUG - handle downlink events here (valve controls)
-
 	// LoRa data handling
 	if ((g_task_event_type & LORA_DATA) == LORA_DATA)
 	{
@@ -339,6 +332,22 @@ void lora_data_handler(void)
 			sprintf(&log_buff[log_idx], "%02X ", g_rx_lora_data[idx]);
 			log_idx += 3;
 		}
+
+		// Check to see if the data received over LoRa is an AT Command
+		if ((g_rx_lora_data[0] == 'A') && (g_rx_lora_data[1] == 'T') && (g_rx_lora_data[2] == '+'))
+		{
+			MYLOG("AT", "RECEIVED LORA");
+			for (int idx = 0; idx < g_rx_data_len; idx++)
+			{
+				at_serial_input(uint8_t(g_rx_lora_data[idx]));
+				delay(5);
+			}
+			at_serial_input(uint8_t('\n'));
+		}
+
+		// Currently all valve operations can be handled by user AT commands
+		// If additional actions based on downlink data are to be added, do it here
+
 		lora_busy = false;
 		MYLOG("APP", "%s", log_buff);
 	}
