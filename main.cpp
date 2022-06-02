@@ -44,6 +44,9 @@ void valve_interval_expiry_handler(void)
 	MYLOG("APP", "Timer handling valve interval expiry, closing valve");
 	setValve(VALVE_STATE_CLOSED, g_valve_settings.oper_time_sec);
 	g_valve_settings.valve_interval_started = false;
+
+	// Manually trigger a lorawan uplink
+	send_lora_uplink();
 }
 
 uint32_t app_timers_init()
@@ -188,6 +191,68 @@ bool init_app(void)
 }
 
 /**
+ * @brief Send LoRaWAN uplink
+ *		  Payload is battery, remaining valve interval, and valve state
+ */
+void send_lora_uplink(void)
+{
+	// Check if lora has joined
+	if (g_join_result)
+	{
+		if (!lora_busy)
+		{
+			// Read the current remaining valve interval and state
+			if (g_valve_settings.valve_interval_started)
+			{
+				int curMillis = millis();
+				int diff = curMillis - g_valve_settings.valve_interval_begin_millis;
+				int remain = g_valve_settings.valve_interval_millis - diff;
+				valve_state.valve_ts16 = (uint16_t)(remain / 1000);
+			}
+			else
+			{
+				valve_state.valve_ts16 = 0;
+			}
+
+			g_lpwan_data.valve_inteval_1 = valve_state.valve_ts8[1];
+			g_lpwan_data.valve_inteval_2 = valve_state.valve_ts8[0];
+
+			// Current valve state (single bit)
+			g_lpwan_data.valve_opened = (g_valve_settings.state == VALVE_STATE_OPENED);
+
+			// Get battery level
+			batt_level.batt16 = read_batt() / 10;
+			g_lpwan_data.batt_1 = batt_level.batt8[1];
+			g_lpwan_data.batt_2 = batt_level.batt8[0];
+
+			lmh_error_status result = send_lora_packet((uint8_t *)&g_lpwan_data, LPWAN_DATA_LEN);
+			switch (result)
+			{
+			case LMH_SUCCESS:
+				MYLOG("APP", "Packet enqueued");
+				// Set a flag that TX cycle is running
+				lora_busy = true;
+				break;
+			case LMH_BUSY:
+				MYLOG("APP", "LoRa transceiver is busy");
+				break;
+			case LMH_ERROR:
+				MYLOG("APP", "Packet error, too big to send with current DR");
+				break;
+			}
+		}
+		else
+		{
+			MYLOG("APP", "LoRaWAN TX cycle not finished, skip this event");
+		}
+	}
+	else
+	{
+		MYLOG("APP", "LoRaWAN not joined, skip this event");
+	}
+}
+
+/**
    @brief Application specific event handler
 		  Requires as minimum the handling of STATUS event
 		  Here you handle as well your application specific events
@@ -213,38 +278,13 @@ void app_event_handler(void)
 #endif
 #endif
 
-		if (!low_batt_protection)
-		{
-			// Read the current remaining valve interval and state
-			if (g_valve_settings.valve_interval_started)
-			{
-				int curMillis = millis();
-				int diff = curMillis - g_valve_settings.valve_interval_begin_millis;
-				int remain = g_valve_settings.valve_interval_millis - diff;
-				valve_state.valve_ts16 = (uint16_t)(remain / 1000);
-			}
-			else
-			{
-				valve_state.valve_ts16 = 0;
-			}
-
-			g_lpwan_data.valve_inteval_1 = valve_state.valve_ts8[1];
-			g_lpwan_data.valve_inteval_2 = valve_state.valve_ts8[0];
-
-			// Current valve state (single bit)
-			g_lpwan_data.valve_opened = (g_valve_settings.state == VALVE_STATE_OPENED);
-		}
-
 		if (lora_busy)
 		{
 			MYLOG("APP", "LoRaWAN TX cycle not finished, skip this event");
 		}
 		else
 		{
-			// Get battery level
-			batt_level.batt16 = read_batt() / 10;
-			g_lpwan_data.batt_1 = batt_level.batt8[1];
-			g_lpwan_data.batt_2 = batt_level.batt8[0];
+			send_lora_uplink();
 
 			// Protection against battery drain
 			if (batt_level.batt16 < 290)
@@ -260,22 +300,6 @@ void app_event_handler(void)
 				low_batt_protection = false;
 				api_timer_restart(g_lorawan_settings.send_repeat_time);
 				MYLOG("APP", "Battery protection deactivated");
-			}
-
-			lmh_error_status result = send_lora_packet((uint8_t *)&g_lpwan_data, LPWAN_DATA_LEN);
-			switch (result)
-			{
-			case LMH_SUCCESS:
-				MYLOG("APP", "Packet enqueued");
-				// Set a flag that TX cycle is running
-				lora_busy = true;
-				break;
-			case LMH_BUSY:
-				MYLOG("APP", "LoRa transceiver is busy");
-				break;
-			case LMH_ERROR:
-				MYLOG("APP", "Packet error, too big to send with current DR");
-				break;
 			}
 		}
 	}

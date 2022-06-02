@@ -65,6 +65,9 @@ void beginValveInterval(int sec)
 	TimerSetValue(&valveTimer, g_valve_settings.valve_interval_millis);
 	TimerStart(&valveTimer);
 	MYLOG("APP", "Valve interval of %d sec started", sec);
+
+	// Manually trigger a lorawan uplink
+	send_lora_uplink();
 }
 
 /**
@@ -150,6 +153,7 @@ static int at_exec_valve(char *str)
 	if (g_valve_settings.valve_interval_started)
 	{
 		MYLOG("APP", "Valve interval is already started, overriding it with manual control");
+		TimerStop(&valveTimer);
 		g_valve_settings.valve_interval_started = false;
 	}
 
@@ -209,6 +213,22 @@ static int at_exec_reboot(char *str)
 }
 
 /**
+ * @brief Command to manually trigger LoRaWAN uplink
+ *
+ * @param str number in seconds to wait before uplink
+ * @return int 0 if the command was succesfull, 5 if the parameter was wrong
+ */
+static int at_exec_uplink(char *str)
+{
+	int sec = strtol(str, NULL, 0);
+	MYLOG("APP", "Triggering uplink in %d sec", sec);
+	delay(sec * 1000);
+	MYLOG("APP", "Triggering uplink");
+	send_lora_uplink();
+	return 0;
+}
+
+/**
  * @brief List of all available commands with short help and pointer to functions
  *
  *  Example AT commands:
@@ -220,7 +240,7 @@ static int at_exec_reboot(char *str)
  *  AT+VLVO=?   - Get the current valve operational time
  *  AT+VLVI=600 - Open the valve for 10 minutes (60 sec & 10), the valve will automatically close after expiry
  *  AT+VLVI=?   - Get how many seconds remain before the valve closes
- * 
+ *  AT+UPLINK=5 - Send uplink after 5 seconds
  */
 atcmd_t g_user_at_cmd_list_example[] = {
 	/*|    CMD    |     AT+CMD?      |    AT+CMD=?    |  AT+CMD=value |  AT+CMD  |*/
@@ -230,7 +250,7 @@ atcmd_t g_user_at_cmd_list_example[] = {
 	{"+VLVS", "Get/Set the valve state (optional :sec)", at_query_valve, at_exec_valve, NULL},
 	{"+VLVO", "Get/Set the valve operational time", at_query_valve_oper_time, at_exec_valve_oper_time, NULL},
 	{"+VLVI", "Start valve open interval sec/Get remaining", at_query_valve_interval, at_exec_valve_interval, NULL},
-};
+	{"+UPLINK", "Manually trigger the sending of an uplink (sec)", NULL, at_exec_uplink, NULL}};
 
 /** Number of user defined AT commands */
 uint8_t g_user_at_cmd_num = sizeof(g_user_at_cmd_list_example) / sizeof(atcmd_t);

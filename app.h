@@ -80,6 +80,7 @@ bool init_app(void);
 void app_event_handler(void);
 void ble_data_handler(void) __attribute__((weak));
 void lora_data_handler(void);
+void send_lora_uplink(void);
 
 // LoRaWan functions (TBD - more efficient bit packing)
 struct lpwan_data_s
