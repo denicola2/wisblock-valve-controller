@@ -134,7 +134,7 @@ void setup_app(void)
 	memcpy(g_lorawan_settings.node_nws_key, node_nws_key, 16);		// ABP Network Session Key MSB
 	memcpy(g_lorawan_settings.node_apps_key, node_apps_key, 16);	// ABP Application Session key MSB
 	g_lorawan_settings.node_dev_addr = 0x26021FB4;					// ABP Device Address MSB
-	g_lorawan_settings.send_repeat_time = 300000;					// Send repeat time in milliseconds: 5 * 60 * 1000 => 5 minutes
+	g_lorawan_settings.send_repeat_time = 900000;					// Send repeat time in milliseconds: 15 * 60 * 1000 => 15 minutes
 	g_lorawan_settings.adr_enabled = false;							// Flag for ADR on or off
 	g_lorawan_settings.public_network = true;						// Flag for public or private network
 	g_lorawan_settings.duty_cycle_enabled = false;					// Flag to enable duty cycle (validity depends on Region)
@@ -357,6 +357,12 @@ void lora_data_handler(void)
 			log_idx += 3;
 		}
 
+		lora_busy = false;
+		MYLOG("APP", "%s", log_buff);
+
+		// Currently all valve operations can be handled by user AT commands
+		// If additional actions based on downlink data are to be added, do it here
+
 		// Check to see if the data received over LoRa is an AT Command
 		if ((g_rx_lora_data[0] == 'A') && (g_rx_lora_data[1] == 'T') && (g_rx_lora_data[2] == '+'))
 		{
@@ -368,12 +374,6 @@ void lora_data_handler(void)
 			}
 			at_serial_input(uint8_t('\n'));
 		}
-
-		// Currently all valve operations can be handled by user AT commands
-		// If additional actions based on downlink data are to be added, do it here
-
-		lora_busy = false;
-		MYLOG("APP", "%s", log_buff);
 	}
 
 	// LoRa TX finished handling
