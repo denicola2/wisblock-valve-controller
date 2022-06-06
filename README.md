@@ -68,6 +68,17 @@ g_lorawan_settings.subband_channels = 2; // Subband channel selection 1 .. 9
   6. Check the current state of the valve: `AT+VLVS=?`
   7. View more info about WisBlock AT commands [here](https://github.com/beegee-tokyo/WisBlock-API/blob/main/AT-Commands.md)
 
+## Send a downlink to begin an "open" interval via the Helium Console
+- All AT commands are accepted via downlink. Using the `AT+VLVI=x` command we can initiate an "open" interval for `x` seconds.
+- For example, if we want to initiate an interval of 45 minutes (eg. Water the garden for 45 minutes) send `AT+VLVI=2700` using the `Text` option in the downlink panel on Console
+- Queue the downlink:
+
+![image](https://user-images.githubusercontent.com/8965585/172229549-d3ab6b43-1c19-4d29-b454-1b76e4012cd4.png)
+- Optionally the command can be encoded to base64 and used in tha `payload_raw` to be used in an API to trigger downlinks from an integration:
+`# echo "AT+VLVI=2700" | base64
+QVQrVkxWST0yNzAwCg==`
+- More info on using HTTP integrations with the Helium Console can be found [HERE](https://docs.helium.com/use-the-network/console/integrations/http/)
+
 ## Sample screenshots from BLE UART Interactions
 <img src="https://user-images.githubusercontent.com/8965585/171219798-5b4922c7-e3e6-4572-bb4c-408c106a84ad.png" height=1024 width=512>
 
