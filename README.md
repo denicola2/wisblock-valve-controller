@@ -71,8 +71,9 @@ g_lorawan_settings.subband_channels = 2; // Subband channel selection 1 .. 9
 ## Sample screenshots from BLE UART Interactions
 <img src="https://user-images.githubusercontent.com/8965585/171219798-5b4922c7-e3e6-4572-bb4c-408c106a84ad.png" height=1024 width=512>
 
-## Project Photo
+## Project Photos
 ![image](https://user-images.githubusercontent.com/8965585/171220811-22b14be2-dafe-4aa6-9f13-93ed6002d2fa.png)
+![image](https://user-images.githubusercontent.com/8965585/172170142-e3616dbf-6966-44c6-a83d-8dcf9b8d3ddb.png)
 
 ## Future Improvements
 - Add circuitry or a new RAK module to measure and track the capacity of the 9V battery used to drive the valve motor.
