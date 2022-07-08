@@ -84,9 +84,11 @@ QVQrVkxWST0yNzAwCg==`
 
 ## Project Photos
 Wisblock and ball valve hooked to a drip irrigation system.
+
 ![image](https://user-images.githubusercontent.com/8965585/172170142-e3616dbf-6966-44c6-a83d-8dcf9b8d3ddb.png)
 
 Datacake dashboard showing watering trends and buttons that enable manual triggering via downlink buttons.
+
 ![image](https://user-images.githubusercontent.com/8965585/178028912-3afa460a-b576-4e4b-98e4-fc739407df34.png)
 
 ## Future Improvements
